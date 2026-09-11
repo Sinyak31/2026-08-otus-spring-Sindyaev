@@ -1,0 +1,6 @@
+# Добавить сюда своих вопросов. Эту строку надо пропустить при настройке CsvToBean (withSkipLines)
+Что такое Inversion of Control (IoC) в Spring?;Это принцип, при котором контроль над объектами передается контейнеру%true|Это паттерн проектирования для работы с базами данных%false|Это способ настройки безопасности в Spring%false|Это метод оптимизации производительности%false
+Какой аннотацией в Spring создается бин?;@Component%true|@Bean%true|@Service%true|@Repository%true|Все перечисленные%false
+Какие способы внедрения зависимостей поддерживает Spring?;Constructor injection%true|Setter injection%true|Field injection%true|Только constructor injection%false|Все перечисленные%true
+Что такое ApplicationContext в Spring?;Это основной интерфейс для доступа к контейнеру Spring%true|Это класс для работы с HTTP-запросами%false|Это аннотация для создания транзакций%false|Это файл конфигурации%false
+Какой scope у бина по умолчанию в Spring?;singleton%true|prototype%false|request%false|session%false
