@@ -1,0 +1,97 @@
+package ru.otus.hw.repositories;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import ru.otus.hw.models.Genre;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.LongStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DisplayName("Репозиторий на основе Spring Data JPA для работы с жанрами")
+@DataJpaTest
+class JpaGenreRepositoryTest {
+
+    @Autowired
+    private GenreRepository genreRepository;
+
+    private List<Genre> dbGenres;
+
+    @BeforeEach
+    void setUp() {
+        dbGenres = getDbGenres();
+    }
+
+    @DisplayName("должен загружать список всех жанров")
+    @Test
+    void shouldReturnAllGenres() {
+        List<Genre> actualGenres = genreRepository.findAll();
+
+        assertThat(actualGenres)
+                .isNotNull()
+                .hasSize(6)
+                .containsExactlyInAnyOrderElementsOf(dbGenres);
+    }
+
+    @DisplayName("должен загружать жанры по ID")
+    @ParameterizedTest
+    @MethodSource("getDbGenres")
+    void shouldReturnGenresByIds(Genre expectedGenre) {
+        Set<Long> ids = Set.of(expectedGenre.getId());
+
+        var genres = genreRepository.findAllById(ids);
+
+        assertThat(genres)
+                .isNotNull()
+                .hasSize(1)
+                .usingRecursiveComparison()
+                .isEqualTo(List.of(expectedGenre));
+    }
+
+    @DisplayName("должен загружать несколько жанров по списку ID")
+    @Test
+    void shouldReturnGenresByIdsMultiple() {
+        Set<Long> ids = Set.of(1L, 3L, 5L);
+
+        List<Genre> actualGenres = genreRepository.findAllById(ids);
+
+        assertThat(actualGenres)
+                .isNotNull()
+                .hasSize(3)
+                .extracting(Genre::getId)
+                .containsExactlyInAnyOrder(1L, 3L, 5L);
+    }
+
+    @DisplayName("должен возвращать пустой список для пустого набора ID")
+    @Test
+    void shouldReturnEmptyListForEmptyIds() {
+        Set<Long> ids = Set.of();
+
+        List<Genre> actualGenres = genreRepository.findAllById(ids);
+
+        assertThat(actualGenres).isEmpty();
+    }
+
+    @DisplayName("должен возвращать пустой список для ID, которых нет в БД")
+    @Test
+    void shouldReturnEmptyListForNonExistentIds() {
+        Set<Long> ids = Set.of(999L, 1000L);
+
+        List<Genre> actualGenres = genreRepository.findAllById(ids);
+
+        assertThat(actualGenres).isEmpty();
+    }
+
+    private static List<Genre> getDbGenres() {
+        return LongStream.range(1, 7).boxed()
+                .map(id -> new Genre(id, "Genre_" + id))
+                .toList();
+    }
+}

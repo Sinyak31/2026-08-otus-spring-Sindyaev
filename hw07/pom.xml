@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -12,55 +10,64 @@
     </parent>
 
     <groupId>ru.otus.hw</groupId>
-    <artifactId>hw03-spring-boot</artifactId>
-    <version>1.0</version>
+    <artifactId>hw07</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>hw07</name>
 
     <properties>
-        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <opencsv.version>5.9</opencsv.version>
-        <lombok.version>1.18.32</lombok.version>
+        <maven.compiler.target>17</maven.compiler.target>
+        <spring.shell.version>3.2.4</spring.shell.version>
         <checkstyle-plugin.version>3.3.1</checkstyle-plugin.version>
         <checkstyle.version>10.15.0</checkstyle.version>
         <checkstyle.config.url>
             https://raw.githubusercontent.com/OtusTeam/Spring/master/checkstyle.xml
         </checkstyle.config.url>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <groupId>org.springframework.shell</groupId>
+            <artifactId>spring-shell-starter</artifactId>
+            <version>${spring.shell.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-            <version>${opencsv.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-collections</groupId>
-                    <artifactId>commons-collections</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-            <version>${lombok.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -83,11 +90,7 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
         </plugins>
     </build>
+
 </project>
