@@ -49,6 +49,7 @@ public class BookController {
     @PostMapping
     public String create(@Valid BookDto dto, Errors errors, Model model) {
         if (errors.hasErrors()) {
+            model.addAttribute("book", new BookDto(dto.title(), dto.authorId(), dto.genresIds()));
             model.addAttribute("authors", authorService.findAll());
             model.addAttribute("genres", genreService.findAll());
             return "books/form";

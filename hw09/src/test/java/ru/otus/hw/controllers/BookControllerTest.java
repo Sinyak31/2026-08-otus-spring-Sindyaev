@@ -51,6 +51,9 @@ class BookControllerTest {
         @MockitoBean
         private GenreService genreService;
 
+        @MockitoBean
+        private CommentService commentService;
+
         private final Author author = new Author(1L, "Author_1");
         private final Genre genre1 = new Genre(1L, "Genre_1");
         private final Genre genre2 = new Genre(2L, "Genre_2");
@@ -192,6 +195,47 @@ class BookControllerTest {
                     .andExpect(redirectedUrl("/books/1"));
 
             verify(commentService).deleteById(1L);
+        }
+    }
+
+    @Nested
+    @WebMvcTest(AuthorGenreController.class)
+    @DisplayName("AuthorGenreController")
+    class AuthorGenreControllerTests {
+
+        @Autowired
+        private MockMvc mockMvc;
+
+        @MockitoBean
+        private AuthorService authorService;
+
+        @MockitoBean
+        private GenreService genreService;
+
+        @DisplayName("GET /authors — должен возвращать список авторов")
+        @Test
+        void shouldReturnAuthorsList() throws Exception {
+            when(authorService.findAll()).thenReturn(List.of(
+                    new Author(1L, "Author_1"),
+                    new Author(2L, "Author_2")
+            ));
+
+            mockMvc.perform(get("/authors"))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("authors/list"));
+        }
+
+        @DisplayName("GET /genres — должен возвращать список жанров")
+        @Test
+        void shouldReturnGenresList() throws Exception {
+            when(genreService.findAll()).thenReturn(List.of(
+                    new Genre(1L, "Genre_1"),
+                    new Genre(2L, "Genre_2")
+            ));
+
+            mockMvc.perform(get("/genres"))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("genres/list"));
         }
     }
 }

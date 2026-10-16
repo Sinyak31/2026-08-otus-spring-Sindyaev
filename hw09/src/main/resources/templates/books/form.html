@@ -10,12 +10,17 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
         <a class="navbar-brand" th:href="@{/books}">Library</a>
+        <div class="navbar-nav">
+            <a class="nav-link" th:href="@{/books}">Books</a>
+            <a class="nav-link" th:href="@{/authors}">Authors</a>
+            <a class="nav-link" th:href="@{/genres}">Genres</a>
+        </div>
     </div>
 </nav>
 <div class="container mt-4">
     <h2 th:text="${book.id != null} ? 'Edit Book' : 'Add Book'">Book Form</h2>
     <form th:action="${book.id != null} ? @{/books/{id}(id=${book.id})} : @{/books}"
-          method="post">
+          method="post" th:object="${book}">
         <div class="mb-3">
             <label for="title" class="form-label">Title</label>
             <input type="text" class="form-control" id="title" name="title"
