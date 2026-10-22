@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${book.id != null} ? 'Edit Book' : 'Add Book'">Book Form</title>
+    <title th:text="${bookId != null} ? 'Edit Book' : 'Add Book'">Book Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -18,31 +18,35 @@
     </div>
 </nav>
 <div class="container mt-4">
-    <h2 th:text="${book.id != null} ? 'Edit Book' : 'Add Book'">Book Form</h2>
-    <form th:action="${book.id != null} ? @{/books/{id}(id=${book.id})} : @{/books}"
+    <h2 th:text="${bookId != null} ? 'Edit Book' : 'Add Book'">Book Form</h2>
+    <form th:action="${bookId != null} ? @{/books/{id}(id=${bookId})} : @{/books}"
           method="post" th:object="${book}">
+
+        <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}">
+            <ul class="mb-0">
+                <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
+            </ul>
+        </div>
+
         <div class="mb-3">
             <label for="title" class="form-label">Title</label>
-            <input type="text" class="form-control" id="title" name="title"
-                   th:value="${book.title}" required>
+            <input type="text" class="form-control" id="title" th:field="*{title}" required>
         </div>
         <div class="mb-3">
             <label for="authorId" class="form-label">Author</label>
-            <select class="form-select" id="authorId" name="authorId" required>
+            <select class="form-select" id="authorId" th:field="*{authorId}" required>
                 <option value="">-- Select Author --</option>
                 <option th:each="author : ${authors}"
                         th:value="${author.id}"
-                        th:text="${author.fullName}"
-                        th:selected="${book.author?.id == author.id}"></option>
+                        th:text="${author.fullName}"></option>
             </select>
         </div>
         <div class="mb-3">
             <label for="genresIds" class="form-label">Genres</label>
-            <select class="form-select" id="genresIds" name="genresIds" multiple required>
+            <select class="form-select" id="genresIds" th:field="*{genresIds}" multiple required>
                 <option th:each="genre : ${genres}"
                         th:value="${genre.id}"
-                        th:text="${genre.name}"
-                        th:selected="${book.genres != null and #lists.contains(book.genres.![id], genre.id)}"></option>
+                        th:text="${genre.name}"></option>
             </select>
             <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
         </div>

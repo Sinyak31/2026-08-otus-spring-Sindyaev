@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.otus.hw.controllers.dto.BookDto;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
@@ -20,18 +20,23 @@ import ru.otus.hw.services.GenreService;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@DisplayName("Тесты контроллеров")
+@DisplayName("BookController")
 class BookControllerTest {
 
     @Nested
@@ -157,85 +162,78 @@ class BookControllerTest {
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/books"));
         }
-    }
 
-    @Nested
-    @WebMvcTest(CommentController.class)
-    @DisplayName("CommentController")
-    class CommentControllerTests {
-
-        @Autowired
-        private MockMvc mockMvc;
-
-        @MockitoBean
-        private CommentService commentService;
-
-        private final Book book1 = new Book(1L, "BookTitle_1", new Author(1L, "Author_1"), List.of(), List.of());
-        private final Comment comment = new Comment(1L, "Great book!", book1);
-
-        @DisplayName("POST /comments/books/{bookId} — должен добавлять комментарий")
+        @DisplayName("POST /books с пустым title — возвращает форму с ошибкой и введёнными значениями")
         @Test
-        void shouldAddComment() throws Exception {
-            when(commentService.insert(1L, "Great book!")).thenReturn(comment);
+        void shouldReturnFormWithErrorsWhenCreateInvalid() throws Exception {
+            when(authorService.findAll()).thenReturn(List.of(author));
+            when(genreService.findAll()).thenReturn(List.of(genre1, genre2));
 
-            mockMvc.perform(post("/comments/books/1")
-                            .param("text", "Great book!"))
-                    .andExpect(redirectedUrl("/books/1"));
-
-            verify(commentService).insert(1L, "Great book!");
-        }
-
-        @DisplayName("POST /comments/{id}/delete — должен удалять комментарий")
-        @Test
-        void shouldDeleteComment() throws Exception {
-            doNothing().when(commentService).deleteById(1L);
-
-            mockMvc.perform(post("/comments/1/delete")
-                            .param("bookId", "1"))
-                    .andExpect(redirectedUrl("/books/1"));
-
-            verify(commentService).deleteById(1L);
-        }
-    }
-
-    @Nested
-    @WebMvcTest(AuthorGenreController.class)
-    @DisplayName("AuthorGenreController")
-    class AuthorGenreControllerTests {
-
-        @Autowired
-        private MockMvc mockMvc;
-
-        @MockitoBean
-        private AuthorService authorService;
-
-        @MockitoBean
-        private GenreService genreService;
-
-        @DisplayName("GET /authors — должен возвращать список авторов")
-        @Test
-        void shouldReturnAuthorsList() throws Exception {
-            when(authorService.findAll()).thenReturn(List.of(
-                    new Author(1L, "Author_1"),
-                    new Author(2L, "Author_2")
-            ));
-
-            mockMvc.perform(get("/authors"))
+            mockMvc.perform(post("/books")
+                            .param("title", "")
+                            .param("authorId", "1")
+                            .param("genresIds", "1"))
                     .andExpect(status().isOk())
-                    .andExpect(view().name("authors/list"));
+                    .andExpect(view().name("books/form"))
+                    .andExpect(model().attributeHasFieldErrors("book", "title"))
+                    .andExpect(result -> {
+                        BookDto dto = (BookDto) result.getModelAndView().getModel().get("book");
+                        assertThat(dto).isNotNull();
+                        assertThat(dto.title()).isEmpty();
+                        assertThat(dto.authorId()).isEqualTo(1L);
+                        assertThat(dto.genresIds()).containsExactly(1L);
+                    });
+
+            verify(bookService, never()).insert(anyString(), anyLong(), any());
         }
 
-        @DisplayName("GET /genres — должен возвращать список жанров")
+        @DisplayName("POST /books без authorId — возвращает форму с ошибкой")
         @Test
-        void shouldReturnGenresList() throws Exception {
-            when(genreService.findAll()).thenReturn(List.of(
-                    new Genre(1L, "Genre_1"),
-                    new Genre(2L, "Genre_2")
-            ));
+        void shouldReturnFormWithErrorsWhenAuthorIdMissing() throws Exception {
+            when(authorService.findAll()).thenReturn(List.of(author));
+            when(genreService.findAll()).thenReturn(List.of(genre1, genre2));
 
-            mockMvc.perform(get("/genres"))
+            mockMvc.perform(post("/books")
+                            .param("title", "New Book")
+                            .param("genresIds", "1"))
                     .andExpect(status().isOk())
-                    .andExpect(view().name("genres/list"));
+                    .andExpect(view().name("books/form"))
+                    .andExpect(model().attributeHasFieldErrors("book", "authorId"))
+                    .andExpect(result -> {
+                        BookDto dto = (BookDto) result.getModelAndView().getModel().get("book");
+                        assertThat(dto).isNotNull();
+                        assertThat(dto.title()).isEqualTo("New Book");
+                        assertThat(dto.authorId()).isNull();
+                        assertThat(dto.genresIds()).containsExactly(1L);
+                    });
+
+            verify(bookService, never()).insert(anyString(), anyLong(), any());
+        }
+
+        @DisplayName("POST /books/{id} с пустым title — сохраняет введённые значения и id")
+        @Test
+        void shouldReturnFormWithEnteredValuesWhenUpdateInvalid() throws Exception {
+            when(authorService.findAll()).thenReturn(List.of(author));
+            when(genreService.findAll()).thenReturn(List.of(genre1, genre2));
+
+            mockMvc.perform(post("/books/1")
+                            .param("title", "")
+                            .param("authorId", "1")
+                            .param("genresIds", "2"))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("books/form"))
+                    .andExpect(model().attributeHasFieldErrors("book", "title"))
+                    .andExpect(model().attribute("bookId", 1L))
+                    .andExpect(result -> {
+                        BookDto dto = (BookDto) result.getModelAndView().getModel().get("book");
+                        assertThat(dto).isNotNull();
+                        assertThat(dto.title()).isEmpty();
+                        assertThat(dto.authorId()).isEqualTo(1L);
+                        assertThat(dto.genresIds()).containsExactly(2L);
+                    });
+
+            verify(bookService, never()).update(anyLong(), anyString(), anyLong(), any());
         }
     }
+
 }

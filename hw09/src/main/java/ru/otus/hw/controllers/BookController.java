@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,19 +38,25 @@ public class BookController {
 
     @GetMapping("/form")
     public String form(@RequestParam(required = false) Long id, Model model) {
-        Book book = id != null
-                ? bookService.findById(id).orElse(new Book())
-                : new Book();
-        model.addAttribute("book", book);
+        if (id != null) {
+            Book book = bookService.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Book with id %d not found".formatted(id)));
+            model.addAttribute("book", new BookDto(book.getTitle(), book.getAuthor().getId(),
+                    book.getGenres().stream().map(g -> g.getId()).collect(java.util.stream.Collectors.toSet())));
+            model.addAttribute("bookId", book.getId());
+        } else {
+            model.addAttribute("book", new BookDto(null, null, null));
+        }
         model.addAttribute("authors", authorService.findAll());
         model.addAttribute("genres", genreService.findAll());
         return "books/form";
     }
 
     @PostMapping
-    public String create(@Valid BookDto dto, Errors errors, Model model) {
+    public String create(@Valid @ModelAttribute("book") BookDto dto, Errors errors, Model model) {
         if (errors.hasErrors()) {
-            model.addAttribute("book", new BookDto(dto.title(), dto.authorId(), dto.genresIds()));
+            model.addAttribute("book", dto);
             model.addAttribute("authors", authorService.findAll());
             model.addAttribute("genres", genreService.findAll());
             return "books/form";
@@ -59,9 +66,10 @@ public class BookController {
     }
 
     @PostMapping("/{id}")
-    public String update(@PathVariable Long id, @Valid BookDto dto, Errors errors, Model model) {
+    public String update(@PathVariable Long id, @Valid @ModelAttribute("book") BookDto dto, Errors errors, Model model) {
         if (errors.hasErrors()) {
-            model.addAttribute("book", bookService.findById(id).orElse(new Book()));
+            model.addAttribute("book", dto);
+            model.addAttribute("bookId", id);
             model.addAttribute("authors", authorService.findAll());
             model.addAttribute("genres", genreService.findAll());
             return "books/form";
