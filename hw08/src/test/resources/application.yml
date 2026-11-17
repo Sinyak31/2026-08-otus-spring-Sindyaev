@@ -1,0 +1,19 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/testdb
+    main:
+      allow-bean-definition-overriding: true
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 4.4.0
+mongock:
+  runner-type: "ApplicationRunner"
+  change-logs-scan-package: ru.otus.hw.mongock.changelog
+  mongo-db:
+    write-concern:
+      journal: false
+    read-concern: local
